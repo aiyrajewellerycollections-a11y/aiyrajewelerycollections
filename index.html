@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIYRA Jewellery Collections</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{--bg:#050607;--card:#0f1720;--muted:#9aa4b2;--accent:#ff6b9a;}
+    body{background:linear-gradient(180deg,#030405,#071019);color:#e6eef6;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Naskh Arabic",sans-serif;}
+    .glass{background:rgba(255,255,255,0.02);backdrop-filter:blur(6px);padding:12px;border-radius:12px;}
+  </style>
+</head>
+<body class="antialiased p-6">
+  <header class="max-w-6xl mx-auto flex items-center justify-between mb-6">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-full bg-gradient-to-br from-pink-600 to-purple-600 flex items-center justify-center text-white font-bold">A</div>
+      <div>
+        <h1 class="text-2xl font-extrabold">AIYRA Jewellery Collections</h1>
+        <p class="text-sm" style="color:var(--muted)">Stylish dark shop — Order via WhatsApp</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="https://wa.me/923462800563" target="_blank" class="px-3 py-2 rounded-full glass text-sm">WhatsApp: +00923462800563</a>
+      <button id="adminLoginBtn" class="px-3 py-2 rounded-full bg-gray-800">Admin Login</button>
+      <button id="adminLogoutBtn" class="px-3 py-2 rounded-full bg-red-700 hidden">Logout</button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <section class="lg:col-span-2">
+      <div id="products" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
+    </section>
+
+    <aside id="adminPanel" class="hidden glass">
+      <h2 class="font-semibold mb-2">Admin Panel</h2>
+      <p class="text-sm" style="color:var(--muted)">Login with password to add/edit/delete products.</p>
+      <div class="mt-3 space-y-2">
+        <input id="newName" placeholder="Product Name" class="w-full p-2 rounded bg-transparent border border-white/6" />
+        <input id="newPrice" placeholder="Price (Rs.)" class="w-full p-2 rounded bg-transparent border border-white/6" />
+        <input id="newImageFile" type="file" accept="image/*" class="w-full p-2 rounded bg-transparent border border-white/6" />
+        <div class="flex gap-2 mt-2">
+          <button id="addBtn" class="flex-1 py-2 rounded bg-gradient-to-br from-pink-600 to-purple-600 font-semibold">Add Product</button>
+          <button id="exportBtn" class="py-2 rounded border border-white/6">Export JSON</button>
+        </div>
+        <button id="resetBtn" class="w-full mt-2 py-2 rounded bg-gray-800">Reset to defaults</button>
+      </div>
+      <p class="mt-4 text-xs" style="color:var(--muted)">Uploaded images are saved as data URLs in your browser (localStorage).</p>
+    </aside>
+  </main>
+
+  <footer class="max-w-6xl mx-auto p-6 text-center text-sm" style="color:var(--muted)">© 2025 AIYRA Jewellery Collections</footer>
+
+<script>
+const WA_NUMBER = "923462800563";
+const ADMIN_PASSWORD = "1234";
+const defaultProducts = [
+  {id:1, name:"Golden Necklace", price:"2500", image:"images/prod_1.jpg"},
+  {id:2, name:"Silver Earrings", price:"1200", image:"images/prod_2.jpg"},
+  {id:3, name:"Stylish Bracelet", price:"900", image:"images/prod_3.jpg"},
+  {id:4, name:"Elegant Ring", price:"700", image:"images/prod_4.jpg"},
+  {id:5, name:"Classic Bangles", price:"1500", image:"images/prod_5.jpg"},
+  {id:6, name:"Jewellery Set", price:"3500", image:"images/prod_6.jpg"}
+];
+
+function loadProducts(){
+  const saved = localStorage.getItem('aiyra_admin_products');
+  if(saved) return JSON.parse(saved);
+  localStorage.setItem('aiyra_admin_products', JSON.stringify(defaultProducts));
+  return defaultProducts.slice();
+}
+function saveProducts(list){ localStorage.setItem('aiyra_admin_products', JSON.stringify(list)); renderProducts(); }
+function resetToDefaults(){ localStorage.removeItem('aiyra_admin_products'); loadProducts(); renderProducts(); }
+
+function createWhatsAppLink(name, price){ const text = encodeURIComponent('Hello, I want to order ' + name + ' (Rs.' + price + ').'); return 'https://wa.me/' + WA_NUMBER + '?text=' + text; }
+
+function renderProducts(){
+  const products = loadProducts();
+  const container = document.getElementById('products');
+  container.innerHTML = '';
+  products.forEach(p=>{
+    const card = document.createElement('div');
+    card.className = 'bg-gradient-to-br from-gray-900 to-black/60 p-4 rounded-2xl shadow-xl flex flex-col justify-between';
+    card.innerHTML = `
+      <div>
+        <div class="rounded-lg overflow-hidden mb-3" style="height:280px;background:#0b0f12;display:flex;align-items:center;justify-content:center">
+          <img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='images/prod_1.jpg'"/>
+        </div>
+        <h3 class="text-lg font-bold">${p.name}</h3>
+        <p class="text-pink-400 font-extrabold mt-1">Rs. ${p.price}</p>
+      </div>
+      <div class="mt-4 flex items-center justify-between gap-2">
+        <a href="${createWhatsAppLink(p.name,p.price)}" target="_blank" class="flex-1 text-center py-2 rounded-lg bg-gradient-to-r from-pink-600 to-purple-600 font-semibold">Order Now</a>
+        <div class="flex gap-2">
+          <button class="editBtn px-3 py-2 rounded-lg bg-yellow-500 text-white" data-id="${p.id}">Edit</button>
+          <button class="delBtn px-3 py-2 rounded-lg bg-red-600 text-white" data-id="${p.id}">Delete</button>
+        </div>
+      </div>
+
+      <div class="editArea mt-3 hidden">
+        <input type="text" class="editName p-2 border rounded w-full mb-2 bg-transparent" value="${p.name}" placeholder="Name"/>
+        <input type="text" class="editPrice p-2 border rounded w-full mb-2 bg-transparent" value="${p.price}" placeholder="Price"/>
+        <input type="file" accept="image/*" class="editImageFile p-2 border rounded w-full mb-2"/>
+        <div class="flex gap-2">
+          <button class="saveEditBtn bg-green-600 text-white px-3 py-1 rounded" data-id="${p.id}">Save</button>
+          <button class="cancelEditBtn bg-gray-600 text-white px-3 py-1 rounded">Cancel</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+
+    // Event handlers
+    const editBtn = card.querySelector('.editBtn');
+    const delBtn = card.querySelector('.delBtn');
+    const editArea = card.querySelector('.editArea');
+    const saveEditBtn = card.querySelector('.saveEditBtn');
+    const cancelEditBtn = card.querySelector('.cancelEditBtn');
+
+    editBtn.addEventListener('click', ()=>{ editArea.classList.remove('hidden'); editBtn.disabled=true; });
+    cancelEditBtn.addEventListener('click', ()=>{ editArea.classList.add('hidden'); editBtn.disabled=false; });
+    delBtn.addEventListener('click', ()=>{ if(!confirm('Delete this product?')) return; let list = loadProducts().filter(x=>x.id!==p.id); saveProducts(list); });
+
+    saveEditBtn.addEventListener('click', async ()=>{
+      const nameEl = card.querySelector('.editName');
+      const priceEl = card.querySelector('.editPrice');
+      const fileEl = card.querySelector('.editImageFile');
+      let imageVal = p.image;
+      if(fileEl.files && fileEl.files[0]) imageVal = await fileToDataUrl(fileEl.files[0]);
+      const list = loadProducts().map(x=> x.id===p.id ? {...x, name: nameEl.value.trim()||x.name, price: priceEl.value.trim()||x.price, image: imageVal} : x);
+      saveProducts(list);
+      editArea.classList.add('hidden'); editBtn.disabled=false;
+    });
+  });
+
+  // hide edit/delete for non-admin
+  if(!isAdmin) document.querySelectorAll('.editBtn, .delBtn').forEach(b=> b.style.display='none');
+}
+
+function fileToDataUrl(file){ return new Promise((resolve,reject)=>{ const reader = new FileReader(); reader.onload = ()=> resolve(reader.result.toString()); reader.onerror = reject; reader.readAsDataURL(file); }); }
+
+// Admin logic
+let isAdmin = false;
+document.getElementById('adminLoginBtn').addEventListener('click', ()=>{
+  const pass = prompt('Enter admin password:');
+  if(pass===ADMIN_PASSWORD){
+    isAdmin=true;
+    document.getElementById('adminPanel').classList.remove('hidden');
+    document.getElementById('adminLogoutBtn').classList.remove('hidden');
+    document.getElementById('adminLoginBtn').classList.add('hidden');
+    renderProducts();
+  } else alert('Wrong password');
+});
+document.getElementById('adminLogoutBtn').addEventListener('click', ()=>{
+  isAdmin=false;
+  document.getElementById('adminPanel').classList.add('hidden');
+  document.getElementById('adminLogoutBtn').classList.add('hidden');
+  document.getElementById('adminLoginBtn').classList.remove('hidden');
+  renderProducts();
+});
+
+document.getElementById('addBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('newName').value.trim()||'New Product';
+  const price = document.getElementById('newPrice').value.trim()||'0';
+  const file = document.getElementById('newImageFile').files[0];
+  let image = 'images/prod_1.jpg';
+  if(file) image = await fileToDataUrl(file);
+  const list = loadProducts();
+  const id = list.length ? Math.max(...list.map(x=>x.id))+1 : 1;
+  list.push({id, name, price, image});
+  saveProducts(list);
+  document.getElementById('newName').value=''; document.getElementById('newPrice').value=''; document.getElementById('newImageFile').value='';
+});
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const data = localStorage.getItem('aiyra_admin_products') || JSON.stringify(defaultProducts);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'aiyra_products.json'; a.click(); URL.revokeObjectURL(url);
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{ if(confirm('Reset to defaults?')) resetToDefaults(); });
+
+// initial render
+renderProducts();
+</script>
+</body>
+</html>
